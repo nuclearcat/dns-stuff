@@ -1,0 +1,56 @@
+resolvers:
+#  - ip: 1.1.1.1
+#    type: tcp
+#    dnssec: true
+  - ip: 8.8.8.8
+    type: tcp
+    dnssec: true
+
+dns:
+  - name: root_servers_lb_check
+    type: query
+    query_name: lb
+    query_types:
+      - NS
+      - DS
+      - RRSIG
+      - DNSKEY
+      - SOA
+    nameservers:
+      - a.root-servers.net
+      - b.root-servers.net
+      - c.root-servers.net
+      - d.root-servers.net
+      - e.root-servers.net
+      - f.root-servers.net
+      - g.root-servers.net
+      - h.root-servers.net
+      - i.root-servers.net
+      - j.root-servers.net
+      - k.root-servers.net
+      - l.root-servers.net
+      - m.root-servers.net
+    dnssec: true
+    query_protocol: tcp
+
+  - name: lb_servers_ns_check
+    type: query
+    query_name: lb
+    query_types:
+      - NS
+      - DS
+      - RRSIG
+      - DNSKEY
+      - SOA
+    nameservers:
+      - b.ns.lb
+      - r.ns.lb
+      - w.ns.lb
+      - t.ns.lb
+      - i.ns.lb
+      - nabil.ns.lb
+      - n.ns.lb
+      - s.ns.lb
+      - m.ns.lb
+    dnssec: true
+    query_protocol: tcp
