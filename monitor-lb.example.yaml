@@ -13,7 +13,6 @@ dns:
     query_types:
       - NS
       - DS
-      - RRSIG
       - DNSKEY
       - SOA
     nameservers:
@@ -39,7 +38,6 @@ dns:
     query_types:
       - NS
       - DS
-      - RRSIG
       - DNSKEY
       - SOA
     nameservers:

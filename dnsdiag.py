@@ -33,11 +33,24 @@ def load_config(config_file):
 
 def store_report(details):
     fname = 'dnsdiag-report-{}.txt'.format(time.strftime('%Y%m%d-%H%M%S'))
+    # if file exists write -NNN to filename
+    seq = 0
+    while os.path.exists(fname):
+        fname = 'dnsdiag-report-{}-{}.txt'.format(time.strftime('%Y%m%d-%H%M%S'), str(seq).zfill(3))
+        seq += 1
+
     header = f'DNS Diagnostics Report - {time.strftime("%Y-%m-%d %H:%M:%S")}\n'
     with open(fname, 'w') as f:
         f.write(details)
     print(f'Report saved to {fname}')
     print(details)
+
+def rdtype_to_text(rdtype):
+    '''
+    Stub function to convert rdtype to text
+    '''
+    return dns.rdatatype.to_text(rdtype);
+        
 
 
 class DNSDiag:
@@ -187,10 +200,11 @@ class DNSDiag:
                     else:
                         response = dns.query.udp(query, ns_ip, timeout=10)
                     for answer in response.answer:
-                        #print(answer)
                         for rrset in answer:
-                            print(f'Adding {rrset.to_text()} to answers...')
-                            answers[query_type][ns_ip].append(rrset.to_text())
+                            rrinfo = rdtype_to_text(rrset.rdtype)
+                            rrinfo += ' ' + rrset.to_text()
+                            print(f'Adding {rrinfo} to answers')
+                            answers[query_type][ns_ip].append(rrinfo)
                 except dns.exception.DNSException as e:
                     print(e)
         
@@ -212,9 +226,14 @@ class DNSDiag:
                 answers[query_type][ns_ip].sort()
                 if answers[query_type][ns_ip] != answers[query_type][nameservers_ips[0]]:
                     report = f'Inconsistent nameservers results for {query_name} {query_type} on {ns_ip}\n'
-                    report += f'Reference nameserver: {nameservers_ips[0]}\n'
-                    report += f'Expected: {answers[query_type][nameservers_ips[0]]}\n'
-                    report += f'Got: {answers[query_type][ns_ip]}\n'
+                    report += f'Reference nameserver: {nameservers_ips[0]}\nExpected:\n'
+                    for entry in answers[query_type][nameservers_ips[0]]:
+                        report += f'{entry}\n'
+                    #report += f'Expected:\n{answers[query_type][nameservers_ips[0]]}\n'
+                    report += f'Got:\n'
+                    #report += f'Got:\n{answers[query_type][ns_ip]}\n'
+                    for entry in answers[query_type][ns_ip]:
+                        report += f'{entry}\n'
                     store_report(report)
 
             if VERBOSE:
@@ -236,8 +255,8 @@ class DNSDiag:
             prev_results = json.load(f)
             if prev_results != answers:
                 report = f'Mismatch for {query_name} with previous results\n'
-                report += f'Expected: {prev_results}\n'
-                report += f'Got: {answers}\n'
+                report += f'Expected:\n{prev_results}\n'
+                report += f'Got:\n{answers}\n'
                 store_report(report)
                 # rename old results with timestamp
                 new_fname = f'dnsdiag-report-{test["name"]}-{time.strftime("%Y%m%d-%H%M%S")}.json'
